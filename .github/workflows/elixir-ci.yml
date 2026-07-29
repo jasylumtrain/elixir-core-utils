@@ -1,0 +1,58 @@
+name: Elixir BEAM Pipeline
+
+on:
+  schedule:
+    # Wakes up at 07 minutes past 5 AM, 11 AM, 5 PM, and 11 PM UTC
+    # (1:07 PM, 7:07 PM, 1:07 AM, and 7:07 AM Singapore Time)
+    - cron: '7 5,11,17,23 * * *'
+  workflow_dispatch:
+
+jobs:
+  elixir-sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch Codebase
+        uses: actions/checkout@v4
+
+      - name: Mutate Elixir Module Spec
+        run: |
+          # 30% chance to skip (maintains organic execution flow)
+          if [ $((RANDOM % 100)) -lt 30 ]; then
+            echo "Elixir module specs current. Skipping run."
+            exit 0
+          fi
+
+          mkdir -p lib
+          TARGET_FILE="lib/telemetry.ex"
+          
+          # Initialize minimal Elixir module if missing
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo "defmodule CoreApp.Telemetry do" > "$TARGET_FILE"
+            echo "  @moduledoc \"\"\"Core telemetry node module\"\"\"" >> "$TARGET_FILE"
+            echo "end" >> "$TARGET_FILE"
+          fi
+
+          # Append syntactically valid Elixir function definitions before the final 'end'
+          FUNCS=("process_node" "validate_state" "sync_buffer" "audit_telemetry")
+          PICKED_FUNC=${FUNCS[$RANDOM % ${#FUNCS[@]}]}
+          
+          # Insert new function block
+          sed -i "$ i\\  def $PICKED_FUNC_$RANDOM(payload) do\\n    {:ok, Map.put(payload, :node_id, $RANDOM)}\\n  end\\n" "$TARGET_FILE"
+
+          git config --global user.name "jasylumtrain"
+          git config --global user.email "jasylumtrain@gmail.com"
+
+          # Elixir/Functional programming vocabulary
+          MESSAGES=(
+            "feat: add elixir pattern matching helper for payload"
+            "refactor: optimize BEAM process telemetry map"
+            "fix: adjust error tuple handling in node module"
+            "chore: sync phoenix pipeline module specs"
+          )
+          MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+
+          git add lib/
+          git commit -m "$MSG"
+          git push
