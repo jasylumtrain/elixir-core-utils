@@ -424,4 +424,8 @@ defmodule CoreApp.Telemetry do
     {:ok, Map.put(payload, :node_id, 9522)}
   end
 
+  def 24532(payload) do
+    {:ok, Map.put(payload, :node_id, 20605)}
+  end
+
 end
